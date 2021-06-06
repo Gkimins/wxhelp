@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".MainActivity" >
+    <TextView
+        android:id="@+id/statue"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="系统状态:开启"/>
+    <TextView
+        android:id="@+id/tip"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="暂无记录"
+        android:textSize="40sp"
+        />
+    <EditText
+        android:id="@+id/filename"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="文件夹名字"/>
+    <Button
+        android:id="@+id/save"
+        android:layout_width="match_parent"
+        android:text="保存图片"
+        android:layout_height="wrap_content"/>
+    <Button
+        android:id="@+id/start"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="一键打包zip"/>
+    <Button
+        android:id="@+id/del"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="一键删除所有图片"/>
+    <Button
+        android:id="@+id/send"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="分享文件"/>
+</LinearLayout>
