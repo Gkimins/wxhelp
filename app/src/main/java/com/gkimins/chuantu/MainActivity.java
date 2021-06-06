@@ -25,7 +25,9 @@ import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import okhttp3.Call;
@@ -49,6 +51,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     private List<File> diffList;
     private Button mDel;
     private Button mSend;
+    private String zipName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -98,10 +101,8 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
         mDel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Context context = MainActivity.this;
-                String path = context.getExternalFilesDir(null).getPath();
-                FileUtils.deleteQuietly(new File(path + "/111111/rec/"));
-                hideSoftInput(view);
+                FileUtils.deleteQuietly(new File(Environment.getExternalStorageDirectory().getPath() + "/111111/rec/"));
+                MainActivity.this.hideSoftInput(view);
                 Toast.makeText(MainActivity.this, "删除成功", Toast.LENGTH_SHORT).show();
             }
         });
@@ -109,60 +110,18 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
         mSend.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-//                FileProvider.getUriForFile(MainActivity.thi)
-//                shareFile(MainActivity.this,);
-                Intent intent = new Intent(Intent.ACTION_SEND);
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                Context context = MainActivity.this;
-                String path = context.getExternalFilesDir(null).getPath();
-                path = path + "/111111/rec.zip";
+                if (!zipName.equals("")){
+                    Intent intent = new Intent(Intent.ACTION_SEND);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    Context context = MainActivity.this;
+                    String path = zipName;
+                    intent.putExtra(Intent.EXTRA_STREAM, FileProvider.getUriForFile(context,getPackageName() + ".fileprovider",new File(path)));
+                    intent.setType("application/octet-stream");
+                    startActivity(intent);
+                }
 
-//                Uri apkUri =FileProvider.getUriForFile(context,getPackageName() + ".fileprovider",new File(path));///-----ide文件提供者名
-
-//                intent.setDataAndType(apkUri, "application/vnd.android.package-archive");
-                intent.putExtra(Intent.EXTRA_STREAM, FileProvider.getUriForFile(context,getPackageName() + ".fileprovider",new File(path)));
-                intent.setType("application/octet-stream");
-                startActivity(intent);
             }
         });
-    }
-    public static void shareFile(Context context, Uri uri) {
-        // File file = new File("\sdcard\android123.cwj"); //附件文件地址
-
-        Intent intent = new Intent(Intent.ACTION_SEND);
-        intent.putExtra("subject", ""); //
-        intent.putExtra("body", ""); // 正文
-        intent.putExtra(Intent.EXTRA_STREAM, uri); // 添加附件，附件为file对象
-        if (uri.toString().endsWith(".gz")) {
-            intent.setType("application/x-gzip"); // 如果是gz使用gzip的mime
-        } else if (uri.toString().endsWith(".txt")) {
-            intent.setType("text/plain"); // 纯文本则用text/plain的mime
-        } else {
-            intent.setType("application/octet-stream"); // 其他的均使用流当做二进制数据来发送
-        }
-        context.startActivity(intent); // 调用系统的mail客户端进行发送
-    }
-    public static void shareMultipleFiles(Context context, ArrayList<Uri> uris) {
-
-        boolean multiple = uris.size() > 1;
-        Intent intent = new Intent(
-                multiple ? android.content.Intent.ACTION_SEND_MULTIPLE
-                        : android.content.Intent.ACTION_SEND);
-
-        if (multiple) {
-            intent.setType("*/*");
-            intent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
-        } else {
-            Uri value = uris.get(0);
-            String ext = MimeTypeMap.getFileExtensionFromUrl(value.toString());
-            String mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext);
-            if(mimeType==null){
-                mimeType = "*/*";
-            }
-            intent.setType(mimeType);
-            intent.putExtra(Intent.EXTRA_STREAM, value);
-        }
-        context.startActivity(Intent.createChooser(intent, "Share"));
     }
 
     @Override
@@ -197,7 +156,8 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
             mStatue.setText("文件夹内有" + fileList.length + "个文件");
         } else {
             if (newList != null && fileList.length < newList.length) {
-                mTip.setText("文件变动，新增加" + (newList.length - fileList.length) + "个文件");
+                String format = new SimpleDateFormat("hh:mm:ss").format(new Date());
+                mTip.setText(format+"文件变动，新增加" + (newList.length - fileList.length) + "个文件");
                 analyse();
             }
         }
@@ -220,37 +180,24 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     }
 
     private void out(String name) throws IOException {
-        String rootFilePaths;
-        Context context = MainActivity.this;
-        String path = context.getExternalFilesDir(null).getPath();
-
-        rootFilePaths = path + "/111111/rec/" + name;
-        File file = new File(rootFilePaths);
-        file.mkdirs();
+        String str2 = Environment.getExternalStorageDirectory().getPath() + "/111111/rec/" + name;
+        new File(str2).mkdirs();
         for (int i = 0; i < diffList.size(); i++) {
-            File file1 = diffList.get(i);
-            File dest = new File(rootFilePaths + "/" + file1.getName());
-//            FileUtils.moveFile(file1, dest);
-            com.blankj.utilcode.util.FileUtils.move(file1, dest);
-//            Files.move(file1.toPath(),dest.toPath(), REPLACE_EXISTING);
+            File file = diffList.get(i);
+            FileUtils.moveFile(file, new File(str2 + "/" + file.getName()));
         }
         Toast.makeText(this, "保存成功", Toast.LENGTH_SHORT).show();
-        fileList = getFileList();
+        this.fileList = getFileList();
     }
 
     private void packToZip() {
-        Context context = MainActivity.this;
-        String path = context.getExternalFilesDir(null).getPath();
-        path = path + "/111111/rec/";
-        String format = "zip";
         try {
-            System.out.println(zipFile(new File(path), format));
-            Toast.makeText(this, "打包成功！", Toast.LENGTH_SHORT).show();
+            zipName = zipFile(new File(Environment.getExternalStorageDirectory().getPath() + "/111111/rec/"), "zip");
+            Toast.makeText(this, "打包成功", Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println(e.getMessage());
         }
-
     }
 
     /**
@@ -278,42 +225,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
      * 软键盘切换
      */
     public void toggleSoftInput() {
-        InputMethodManager imm =
-                (InputMethodManager) MainActivity.this.getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
-    }
-
-    //    /**
-//     * 获取当前淘宝时间，用来验证时间 程序有效期一天 防止跑路
-//     */
-    private void getTime() {
-        OkHttpClient okHttpClient = new OkHttpClient();
-        Request request = new Request.Builder()
-                .url("https://api.m.taobao.com/rest/api3.do?api=mtop.common.getTimestamp")
-                .build();
-        Call call = okHttpClient.newCall(request);
-        Toast.makeText(this, "试用版本", Toast.LENGTH_SHORT).show();
-        call.enqueue(new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
-                Message message = handlers.obtainMessage();
-                message.arg1 = 1;
-                message.sendToTarget();
-            }
-
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                String s = response.body().string();
-                String substring = s.substring(81, 94);
-                if (Long.valueOf(substring) > 1621706455944L && Long.valueOf(substring) < 1621879255000L) {
-
-                } else {
-                    Message message = handlers.obtainMessage();
-                    message.arg1 = 1;
-                    message.sendToTarget();
-                }
-            }
-        });
+        ((InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE)).toggleSoftInput(2, 0);
     }
 
     /**
@@ -358,14 +270,4 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
             finish();
         }
     }
-
-
-    private Handler handlers = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            super.handleMessage(msg);
-            Toast.makeText(MainActivity.this, "软件过期", Toast.LENGTH_SHORT).show();
-            finish();
-        }
-    };
 }

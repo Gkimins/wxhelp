@@ -8,6 +8,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class ZipTool {
 
@@ -142,12 +144,14 @@ public class ZipTool {
      * @throws Exception
      */
     public static String zipFile(File path,String format) throws Exception {
+        SimpleDateFormat format0 = new SimpleDateFormat("MMddHHmm");
+        String format1 = format0.format(new Date());
         String generatePath = "";
         if( path.isDirectory() ){
-            generatePath = path.getParent().endsWith("/") == false ? path.getParent() + File.separator + path.getName() + "." + format: path.getParent() + path.getName() + "." + format;
+            generatePath = path.getParent().endsWith("/") == false ? path.getParent() + File.separator + path.getName() +format1+ "." + format: path.getParent() + path.getName() +format1+ "." + format;
         }else {
             generatePath = path.getParent().endsWith("/") == false ? path.getParent() + File.separator : path.getParent();
-            generatePath += path.getName().substring(0,path.getName().lastIndexOf(".")) + "." + format;
+            generatePath += path.getName().substring(0,path.getName().lastIndexOf("."))+format1+ "." + format;
         }
         // 输出流
         FileOutputStream outputStream = new FileOutputStream( generatePath );

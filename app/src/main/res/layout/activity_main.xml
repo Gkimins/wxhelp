@@ -22,6 +22,7 @@
         android:id="@+id/filename"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:inputType="number"
         android:hint="文件夹名字"/>
     <Button
         android:id="@+id/save"
